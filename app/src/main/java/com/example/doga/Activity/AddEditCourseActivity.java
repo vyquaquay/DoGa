@@ -1,5 +1,6 @@
 package com.example.doga.Activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -7,20 +8,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import com.example.doga.Dao.AppDatabase;
 import com.example.doga.Model.GiogaCourseModel;
 import com.example.doga.R;
-import com.example.doga.adapter.GiogaCourseAdapter;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,14 +30,15 @@ public class AddEditCourseActivity extends AppCompatActivity {
     private Spinner typeSpinner;
     private EditText descriptionEditText;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private String [] DayofWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-    private String [] TypeofClass = {"Flow Yoga", "Aeril Yoga", "Family Yoga"};
+    private String[] DayofWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+    private String[] TypeofClass = {"Flow Yoga", "Aeril Yoga", "Family Yoga"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_edit_course);
+
+        // Initialize database and UI elements
         appDatabase = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "sqlite_example_db").build();
         dayOfWeekSpinner = findViewById(R.id.dayOfWeekSpinner);
@@ -54,32 +49,26 @@ public class AddEditCourseActivity extends AppCompatActivity {
         typeSpinner = findViewById(R.id.typeSpinner);
         durationEditText = findViewById(R.id.durationEditText);
         descriptionEditText = findViewById(R.id.descriptionEditText);
-        Intent intent = getIntent();
-        if (intent != null && intent.getExtras() != null) {
-            long courseId = intent.getLongExtra("course_id", -1L);
-            executorService.execute(() -> {
 
-                GiogaCourseModel giogaCourseModel = appDatabase.CourseDao().getCourseById(courseId);
-                timeEditText.setText(giogaCourseModel.timeofCourse);
-                capacityEditText.setText(String.valueOf(giogaCourseModel.capacity));
-                durationEditText.setText(String.valueOf(giogaCourseModel.duration));
-                priceEditText.setText(String.valueOf(giogaCourseModel.price));
-                descriptionEditText.setText(giogaCourseModel.description);
-                int dayOfWeekPosition = findPositionInArray(DayofWeek, giogaCourseModel.dayOfWeek);
-                if (dayOfWeekPosition != -1) {
-                    dayOfWeekSpinner.setSelection(dayOfWeekPosition);
-                }
+        // Set up spinners
+        ArrayAdapter<String> DayAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, DayofWeek);
+        ArrayAdapter<String> TypeAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, TypeofClass);
+        dayOfWeekSpinner.setAdapter(DayAdapter);
+        typeSpinner.setAdapter(TypeAdapter);
 
-                // Set text for typeSpinner
-                int typePosition = findPositionInArray(TypeofClass, giogaCourseModel.typeofClass);
-                if (typePosition != -1) {
-                    typeSpinner.setSelection(typePosition);
-                }
-                saveButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(courseId !=1L)
-                        {
+        // Set click listener for save button
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = getIntent();
+                if (intent != null && intent.getExtras() != null) {
+                    long courseId = intent.getLongExtra("course_id", -1L);
+                    if (courseId != -1L) {
+                        // Update existing course
+                        executorService.execute(() -> {
+                            GiogaCourseModel giogaCourseModel = appDatabase.CourseDao().getCourseById(courseId);
                             giogaCourseModel.dayOfWeek = dayOfWeekSpinner.getSelectedItem().toString();
                             giogaCourseModel.timeofCourse = timeEditText.getText().toString();
                             giogaCourseModel.capacity = Integer.parseInt(capacityEditText.getText().toString());
@@ -87,27 +76,55 @@ public class AddEditCourseActivity extends AppCompatActivity {
                             giogaCourseModel.typeofClass = typeSpinner.getSelectedItem().toString();
                             giogaCourseModel.description = descriptionEditText.getText().toString();
                             giogaCourseModel.duration = Integer.parseInt(durationEditText.getText().toString());
-                            executorService.execute(() -> {
-                                appDatabase.CourseDao().updateCourse(giogaCourseModel);
+                            appDatabase.CourseDao().updateCourse(giogaCourseModel);
+
+                            // Set result and finish after updating
+                            runOnUiThread(() -> {
+                                setResult(Activity.RESULT_OK);
+                                finish();
                             });
-                        }
-                        else {
-                            onSaveButtonClicked(view);
-                        }
+                        });
+                    } else {
+                        // Add new course
+                        onSaveButtonClicked(view);
                     }
+                } else {
+                    // Add new course (if no intent extras)
+                    onSaveButtonClicked(view);
+                }
+            }
+        });
+        // Check for existing course ID for editing
+        Intent intent = getIntent();
+        if (intent != null && intent.getExtras() != null) {
+            long courseId = intent.getLongExtra("course_id", -1L);
+            if (courseId != -1L) {
+                executorService.execute(() -> {
+                    GiogaCourseModel giogaCourseModel = appDatabase.CourseDao().getCourseById(courseId);
+                    // Update UI with existing course data
+                    runOnUiThread(() -> {
+                        timeEditText.setText(giogaCourseModel.timeofCourse);
+                        capacityEditText.setText(String.valueOf(giogaCourseModel.capacity));
+                        durationEditText.setText(String.valueOf(giogaCourseModel.duration));
+                        priceEditText.setText(String.valueOf(giogaCourseModel.price));
+                        descriptionEditText.setText(giogaCourseModel.description);
+
+                        int dayOfWeekPosition = findPositionInArray(DayofWeek, giogaCourseModel.dayOfWeek);
+                        if (dayOfWeekPosition != -1) {
+                            dayOfWeekSpinner.setSelection(dayOfWeekPosition);
+                        }
+
+                        int typePosition = findPositionInArray(TypeofClass, giogaCourseModel.typeofClass);
+                        if (typePosition != -1) {
+                            typeSpinner.setSelection(typePosition);
+                        }
+                    });
                 });
-            });
+            }
         }
-
-
-        ArrayAdapter<String> DayAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, DayofWeek);
-        ArrayAdapter<String> TypeAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, TypeofClass);
-        dayOfWeekSpinner.setAdapter(DayAdapter);
-        typeSpinner.setAdapter(TypeAdapter);
     }
 
+    // Method to handle saving a new course
     public void onSaveButtonClicked(View view) {
         GiogaCourseModel newCourse = new GiogaCourseModel();
         newCourse.dayOfWeek = dayOfWeekSpinner.getSelectedItem().toString();
@@ -121,8 +138,11 @@ public class AddEditCourseActivity extends AppCompatActivity {
         executorService.execute(() -> {
             appDatabase.CourseDao().insertCourse(newCourse);
         });
+        setResult(Activity.RESULT_OK);
         finish();
     }
+
+    // Helper method to find position of an item in an array
     private int findPositionInArray(String[] array, String value) {
         for (int i = 0; i < array.length; i++) {
             if (array[i].equals(value)) {
@@ -131,6 +151,7 @@ public class AddEditCourseActivity extends AppCompatActivity {
         }
         return -1; // Not found
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();

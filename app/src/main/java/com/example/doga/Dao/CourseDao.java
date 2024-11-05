@@ -3,6 +3,7 @@ package com.example.doga.Dao;
 // /dao/PersonDao.java
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
@@ -23,5 +24,11 @@ public interface CourseDao {
     GiogaCourseModel getCourseById(long courseId);
     @Update
     void updateCourse(GiogaCourseModel course);
+    @Delete
+    void deleteCourse(GiogaCourseModel course); // Delete a single course
+
+    @Delete
+    void deleteCourses(List<GiogaCourseModel> courses); // Delete multiple courses
+
 }
 
