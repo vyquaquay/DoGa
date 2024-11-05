@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "809832229014",
+    "project_id": "giogaapp",
+    "storage_bucket": "giogaapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:809832229014:android:7ed9d77ee9f65b031a7ab7",
+        "android_client_info": {
+          "package_name": "com.example.doga"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCg7e8m3AFIef7YvtcFkdj65YyFalWuMJE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
