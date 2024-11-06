@@ -1,24 +1,34 @@
 package com.example.doga.Activity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.DatePicker;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import com.example.doga.Dao.AppDatabase;
+import com.example.doga.Model.GiogaClassModel;
 import com.example.doga.Model.GiogaCourseModel;
 import com.example.doga.R;
+import com.example.doga.adapter.GiogaClassAdapter;
 import com.example.doga.adapter.GiogaCourseAdapter;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -26,35 +36,40 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 
-public class MainActivity extends AppCompatActivity {
+public class ClassActivity extends AppCompatActivity {
 
     private AppDatabase appDatabase;
     private RecyclerView recyclerView;
-    private GiogaCourseAdapter adapter;
+    private GiogaClassAdapter adapter;
     private static final int ADD_COURSE_REQUEST_CODE = 1;
     private CheckBox selectAllCheckBox;
     private ImageView deleteIcon;
     private boolean isSelectAll = false;
-    private List<GiogaCourseModel> selectedCourses = new ArrayList<>();
+    private List<GiogaClassModel> selectedClass = new ArrayList<>();
     private ExecutorService executorService;
     private SearchView searchView;
-    private List<GiogaCourseModel> giogaCourseModels;
+    private List<GiogaClassModel> giogaClassModels;
+    private long courseId = -1L;
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.class_activity);
         executorService = Executors.newSingleThreadExecutor();
         searchView = findViewById(R.id.searchBar);
         appDatabase = Room
                 .databaseBuilder(getApplicationContext(), AppDatabase.class, "sqlite_example_db")
                 .allowMainThreadQueries() // For simplicity, don't use this in production
                 .build();
-        recyclerView = findViewById(R.id.yogaCourseRecyclerView);
+        recyclerView = findViewById(R.id.yogaClassRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         selectAllCheckBox = findViewById(R.id.selectAllCheckBox);
         deleteIcon = findViewById(R.id.delButton);
-        Button NewCourseButton = findViewById(R.id.createButton);
-        giogaCourseModels = appDatabase.CourseDao().getAllCourse();
+        Button NewClassButton = findViewById(R.id.createButton);
+        giogaClassModels = appDatabase.ClassDao().getAllClasses();
+
+        Intent intent = getIntent();
+        courseId = intent.getLongExtra("course_id", -1L);
         selectAllCheckBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -70,16 +85,16 @@ public class MainActivity extends AppCompatActivity {
                 deleteSelectedCourses();
             }
         });
-        NewCourseButton.setOnClickListener(new View.OnClickListener() {
+        NewClassButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, AddEditCourseActivity.class);
-
+                Intent intent = new Intent(ClassActivity.this, AddEditClassActivity.class);
+                intent.putExtra("course_id", courseId);
                 startActivityForResult(intent, ADD_COURSE_REQUEST_CODE); // Use startActivityForResult
             }
         });
-        List<GiogaCourseModel> initialCourses = appDatabase.CourseDao().getAllCourse();
-        adapter = new GiogaCourseAdapter(initialCourses, MainActivity.this);
+        List<GiogaClassModel> initialClasss = appDatabase.ClassDao().getAllClasses();
+        adapter = new GiogaClassAdapter(initialClasss, ClassActivity.this);
         recyclerView.setAdapter(adapter);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -91,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextChange(String newText) {
                 // Filter course list based on newText
-                filterCourseList(newText);
+                filterClassList(newText);
                 return true;
             }
         });
@@ -106,8 +121,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshCourseList() {
-        giogaCourseModels = appDatabase.CourseDao().getAllCourse();
-        adapter = new GiogaCourseAdapter(giogaCourseModels, MainActivity.this); // Recreate adapter
+       List<GiogaClassModel> giogaClassModels = appDatabase.ClassDao().getClassBycourseId(courseId);
+        adapter = new GiogaClassAdapter(giogaClassModels, ClassActivity.this); // Recreate adapter
         recyclerView.setAdapter(adapter);
     }
     @Override
@@ -117,34 +132,32 @@ public class MainActivity extends AppCompatActivity {
     }
     private void deleteSelectedCourses() {
         // Get selected courses from adapter
-        selectedCourses = adapter.getSelectedCourses();
+        List<GiogaClassModel> selectedClass = adapter.getSelectedClasses();
 
-        // Delete from database
-        executorService.execute(() -> {
-            appDatabase.CourseDao().deleteCourses(selectedCourses); // Use the DAO's delete method
+// Delete the selected classes
+        for (GiogaClassModel classModel : selectedClass) {
+            appDatabase.ClassDao().deleteClasse(classModel);
+        }// Use the DAO's delete method
 
             // Refresh course list on the main thread
             runOnUiThread(() -> {
                 refreshCourseList();
             });
-        });
     }
     @Override
     protected void onDestroy() {
         super.onDestroy();
         executorService.shutdown();
     }
-    private boolean matchesSearchCriteria(GiogaCourseModel course, String query) {
-        return String.valueOf(course.price).contains(query) ||
-                String.valueOf(course.capacity).contains(query) ||
-                course.dayOfWeek.toLowerCase().contains(query.toLowerCase()) ||
-                course.typeofClass.toLowerCase().contains(query.toLowerCase())
-                || course.description.toLowerCase().contains(query.toLowerCase());
+    private boolean matchesSearchCriteria(GiogaClassModel classe, String query) {
+        return String.valueOf(classe.date).contains(query) ||
+                classe.teacher.toLowerCase().contains(query.toLowerCase()) ||
+                classe.comment.toLowerCase().contains(query.toLowerCase());
     }
 
-    private void filterCourseList(String query) {
-        List<GiogaCourseModel> filteredList = giogaCourseModels.stream()
-                .filter(course -> matchesSearchCriteria(course, query))
+    private void filterClassList(String query) {
+        List<GiogaClassModel> filteredList = giogaClassModels.stream()
+                .filter(classe -> matchesSearchCriteria(classe, query))
                 .collect(Collectors.toList());
 
         adapter.updateData(filteredList); // Update the adapter with the filtered data

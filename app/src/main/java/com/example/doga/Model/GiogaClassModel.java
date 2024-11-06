@@ -14,13 +14,12 @@ import java.util.List;
 public class GiogaClassModel {
     @PrimaryKey(autoGenerate = true)
     public long id;
-
-    public int courseId;
+    public long courseId;
     public String date;
     public String teacher;
     public String comment;
 
-    public GiogaClassModel(int courseId, String date, String teacher, String comment) {
+    public GiogaClassModel(long courseId, String date, String teacher, String comment) {
         this.courseId = courseId;
         this.date = date;
         this.teacher = teacher;

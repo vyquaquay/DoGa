@@ -16,6 +16,12 @@
             android:name=".Activity.AddEditCourseActivity"
             android:exported="false" />
         <activity
+            android:name=".Activity.ClassActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".Activity.AddEditClassActivity"
+            android:exported="false"/>
+        <activity
             android:name=".Activity.MainActivity"
             android:exported="true" >
             <intent-filter>
@@ -25,5 +31,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

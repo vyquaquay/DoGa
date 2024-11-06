@@ -1,10 +1,13 @@
 package com.example.doga.adapter;
+import com.example.doga.Activity.ClassActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -25,7 +28,6 @@ public class GiogaCourseAdapter extends RecyclerView.Adapter<GiogaCourseAdapter.
     private final AppCompatActivity activity;
     private boolean isSelectAll = false; // Flag to track select all state
     private List<GiogaCourseModel> selectedCourses = new ArrayList<>(); // List to store selected courses
-
     public GiogaCourseAdapter(List<GiogaCourseModel> GIogaModels, AppCompatActivity activity) {
         this.giogaModels = GIogaModels;
         this.activity = activity;
@@ -62,6 +64,12 @@ public class GiogaCourseAdapter extends RecyclerView.Adapter<GiogaCourseAdapter.
             }
         });
 
+        holder.viewClass.setOnClickListener(v -> {
+            Context context = holder.viewClass.getContext();
+            Intent intent = new Intent(context, ClassActivity.class);
+            intent.putExtra("course_id", giogaModel.Id);
+            context.startActivity(intent);
+        });
         // Handle long-press to select the item
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -114,7 +122,8 @@ public class GiogaCourseAdapter extends RecyclerView.Adapter<GiogaCourseAdapter.
 
     public static class GiogaViewHolder extends RecyclerView.ViewHolder {
         TextView TypeOfClass, TimeofCouse, DayofWeek, Capacity, Duration, PriceofClass, Description;
-        CheckBox checkBox; // Add a CheckBox for selection
+        CheckBox checkBox;
+        Button viewClass;// Add a CheckBox for selection
         public boolean isSelected = false; // Add selection state
 
         public GiogaViewHolder(@NonNull View itemView) {
@@ -126,7 +135,8 @@ public class GiogaCourseAdapter extends RecyclerView.Adapter<GiogaCourseAdapter.
             Duration = itemView.findViewById(R.id.Duration);
             PriceofClass = itemView.findViewById(R.id.PriceofClass);
             Description = itemView.findViewById(R.id.Description);
-            checkBox = itemView.findViewById(R.id.checkBox); // Initialize the CheckBox
+            checkBox = itemView.findViewById(R.id.checkBox);
+            viewClass = itemView.findViewById(R.id.viewclassButton); // Initialize the CheckBox
         }
     }
     public void updateData(List<GiogaCourseModel> filteredList) {

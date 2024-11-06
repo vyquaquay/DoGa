@@ -2,7 +2,7 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/contactCard"
+    android:id="@+id/classCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
@@ -21,62 +21,28 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/DayofWeek"
+                android:id="@+id/Date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
             <TextView
-                android:id="@+id/TimeofCouse"
+                android:id="@+id/Teacher"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
 
             <TextView
-                android:id="@+id/Capacity"
+                android:id="@+id/Comment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
-
-            <TextView
-                android:id="@+id/Duration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <TextView
-                android:id="@+id/PriceofClass"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <TextView
-                android:id="@+id/TypeOfClass"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-            <TextView
-                android:id="@+id/Description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
         </LinearLayout>
-
         <CheckBox
             android:id="@+id/checkBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical" />
-
-        <Button
-            android:id="@+id/viewclassButton"
-            android:layout_width="93dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:text="View Class" />
-
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

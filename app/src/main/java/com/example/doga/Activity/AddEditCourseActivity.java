@@ -32,13 +32,14 @@ public class AddEditCourseActivity extends AppCompatActivity {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private String[] DayofWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
     private String[] TypeofClass = {"Flow Yoga", "Aeril Yoga", "Family Yoga"};
-
+    private int selectedDayIndex = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_course);
 
         // Initialize database and UI elements
+        String selectedDay = DayofWeek[selectedDayIndex];
         appDatabase = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "sqlite_example_db").build();
         dayOfWeekSpinner = findViewById(R.id.dayOfWeekSpinner);
@@ -49,7 +50,6 @@ public class AddEditCourseActivity extends AppCompatActivity {
         typeSpinner = findViewById(R.id.typeSpinner);
         durationEditText = findViewById(R.id.durationEditText);
         descriptionEditText = findViewById(R.id.descriptionEditText);
-
         // Set up spinners
         ArrayAdapter<String> DayAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, DayofWeek);
@@ -81,6 +81,7 @@ public class AddEditCourseActivity extends AppCompatActivity {
                             // Set result and finish after updating
                             runOnUiThread(() -> {
                                 setResult(Activity.RESULT_OK);
+
                                 finish();
                             });
                         });
@@ -157,4 +158,5 @@ public class AddEditCourseActivity extends AppCompatActivity {
         super.onDestroy();
         executorService.shutdown();
     }
+
 }
