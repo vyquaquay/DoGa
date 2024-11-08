@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
                         classFuncModel.date = classModel.date;
                         classFuncModel.teacher = classModel.teacher;
                         classFuncModel.comment = classModel.comment;
+                        classFuncModel.typeOfCourse = appDatabase.CourseDao().getCourseById(classModel.courseId).typeofClass;
                     LocalDate date = LocalDate.parse(classModel.date);
                     classFuncModel.dayOfWeek = date.getDayOfWeek().toString();
                     classFuncModels.add(classFuncModel);

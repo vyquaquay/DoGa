@@ -6,4 +6,5 @@ public class ClassFuncModel {
     public String teacher;
     public String comment;
     public String dayOfWeek;
+    public String typeOfCourse;
 }
