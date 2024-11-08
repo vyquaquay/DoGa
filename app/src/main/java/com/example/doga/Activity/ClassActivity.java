@@ -105,12 +105,14 @@ public class ClassActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // Filter course list based on newText
-                filterClassList(newText);
+                // Assuming you have the courseId of the current course
+                long currentCourseId = courseId; // Replace with your actual courseId
+
+                // Filter course list based on newText and courseId
+                filterClassList(newText, currentCourseId);
                 return true;
             }
         });
-
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -149,15 +151,16 @@ public class ClassActivity extends AppCompatActivity {
         super.onDestroy();
         executorService.shutdown();
     }
-    private boolean matchesSearchCriteria(GiogaClassModel classe, String query) {
-        return String.valueOf(classe.date).contains(query) ||
+    private boolean matchesSearchCriteria(GiogaClassModel classe, String query, long courseId) {
+        return classe.courseId == courseId && ( // Check if class belongs to the current course
                 classe.teacher.toLowerCase().contains(query.toLowerCase()) ||
-                classe.comment.toLowerCase().contains(query.toLowerCase());
+                        classe.comment.toLowerCase().contains(query.toLowerCase())
+        );
     }
 
-    private void filterClassList(String query) {
+    private void filterClassList(String query, long courseId) {
         List<GiogaClassModel> filteredList = giogaClassModels.stream()
-                .filter(classe -> matchesSearchCriteria(classe, query))
+                .filter(classe -> matchesSearchCriteria(classe, query, courseId))
                 .collect(Collectors.toList());
 
         adapter.updateData(filteredList); // Update the adapter with the filtered data

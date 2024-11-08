@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,10 +16,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import com.example.doga.Dao.AppDatabase;
+import com.example.doga.Model.ClassFuncModel;
+import com.example.doga.Model.GiogaClassModel;
 import com.example.doga.Model.GiogaCourseModel;
 import com.example.doga.R;
 import com.example.doga.adapter.GiogaCourseAdapter;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -39,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private ExecutorService executorService;
     private SearchView searchView;
     private List<GiogaCourseModel> giogaCourseModels;
+    private List<GiogaClassModel> giogaClassModels;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         selectAllCheckBox = findViewById(R.id.selectAllCheckBox);
         deleteIcon = findViewById(R.id.delButton);
         Button NewCourseButton = findViewById(R.id.createButton);
+        Button putFirebase = findViewById(R.id.firebaseButton);
         giogaCourseModels = appDatabase.CourseDao().getAllCourse();
         selectAllCheckBox.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,6 +88,44 @@ public class MainActivity extends AppCompatActivity {
 
                 startActivityForResult(intent, ADD_COURSE_REQUEST_CODE); // Use startActivityForResult
             }
+        });
+
+        putFirebase.setOnClickListener(view -> {
+            // 1. Get data from local database
+            executorService.execute(() -> {
+                List<GiogaClassModel> localClasses = appDatabase.ClassDao().getAllClasses();
+                List<ClassFuncModel> classFuncModels = new ArrayList<>();
+                for (GiogaClassModel classModel  : localClasses) {
+                        ClassFuncModel classFuncModel = new ClassFuncModel();
+                        classFuncModel.id = classModel.id;
+                        classFuncModel.date = classModel.date;
+                        classFuncModel.teacher = classModel.teacher;
+                        classFuncModel.comment = classModel.comment;
+                    LocalDate date = LocalDate.parse(classModel.date);
+                    classFuncModel.dayOfWeek = date.getDayOfWeek().toString();
+                    classFuncModels.add(classFuncModel);
+                }
+                // 2. Get data from Firebase
+                DatabaseReference classesRef = FirebaseDatabase.getInstance().getReference("classes");
+                classesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        List<ClassFuncModel> firebaseClasses = new ArrayList<>();
+                        for (DataSnapshot classSnapshot : snapshot.getChildren()) {
+                            firebaseClasses.add(classSnapshot.getValue(ClassFuncModel.class));
+                        }
+                        // 3. Compare local and Firebase data for classes
+                        if (!classFuncModels.equals(firebaseClasses)) {
+                            // 4. Update Firebase with local data for classes
+                            classesRef.setValue(classFuncModels);
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // Handle error
+                    }
+                });
+            });
         });
         List<GiogaCourseModel> initialCourses = appDatabase.CourseDao().getAllCourse();
         adapter = new GiogaCourseAdapter(initialCourses, MainActivity.this);

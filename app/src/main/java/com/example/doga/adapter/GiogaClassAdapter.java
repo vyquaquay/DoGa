@@ -47,8 +47,8 @@ public class GiogaClassAdapter extends RecyclerView.Adapter<GiogaClassAdapter.Gi
 
         // Check for null before setting text
             holder.dateTextView.setText(giogaClassModel.date);
-            holder.teacherTextView.setText(giogaClassModel.teacher);
-            holder.commentTextView.setText(giogaClassModel.comment);
+            holder.teacherTextView.setText("Teacher: "+giogaClassModel.teacher);
+            holder.commentTextView.setText("Comment: "+giogaClassModel.comment);
 
         holder.bind(giogaClassModel, position); // Pass data to ViewHolder
 
@@ -122,7 +122,6 @@ public class GiogaClassAdapter extends RecyclerView.Adapter<GiogaClassAdapter.Gi
         public void bind(GiogaClassModel giogaClassModel, int position) {
             this.giogaClassModel = giogaClassModel;
             this.position = position;
-            // ... (Set other views using giogaClassModel data)
         }
     }
 }

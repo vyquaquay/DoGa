@@ -46,13 +46,13 @@ public class GiogaCourseAdapter extends RecyclerView.Adapter<GiogaCourseAdapter.
     public void onBindViewHolder(@NonNull GiogaViewHolder holder, int position) {
         GiogaCourseModel giogaModel = giogaModels.get(position);
         Log.d("GiogaCourseAdapter", "Binding data for position: " + position + ": " + giogaModel.toString());
-        holder.TypeOfClass.setText(giogaModel.typeofClass);
-        holder.TimeofCouse.setText(giogaModel.timeofCourse);
-        holder.DayofWeek.setText(giogaModel.dayOfWeek);
-        holder.Capacity.setText(String.valueOf(giogaModel.capacity));
-        holder.Duration.setText(String.valueOf(giogaModel.duration));
-        holder.PriceofClass.setText(String.valueOf(giogaModel.price));
-        holder.Description.setText(giogaModel.description);
+        holder.TypeOfClass.setText("Type of class: "+giogaModel.typeofClass);
+        holder.TimeofCouse.setText("Time of course: "+giogaModel.timeofCourse);
+        holder.DayofWeek.setText("Day of the week: "+giogaModel.dayOfWeek);
+        holder.Capacity.setText(String.format("Capacity : %d", giogaModel.capacity));
+        holder.Duration.setText(String.format("Duration (minute): %d", giogaModel.duration));
+        holder.PriceofClass.setText(String.format("Price of class (Dollar): %.2f", giogaModel.price));
+        holder.Description.setText("Descript: "+giogaModel.description);
 
         // Handle item click to open AddEditCourseActivity
         holder.itemView.setOnClickListener(new View.OnClickListener() {

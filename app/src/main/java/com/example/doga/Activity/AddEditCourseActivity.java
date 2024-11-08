@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
@@ -127,14 +128,26 @@ public class AddEditCourseActivity extends AppCompatActivity {
 
     // Method to handle saving a new course
     public void onSaveButtonClicked(View view) {
+        String time = timeEditText.getText().toString().trim();
+        String capacity = capacityEditText.getText().toString().trim();
+        String duration = durationEditText.getText().toString().trim();
+        String price = priceEditText.getText().toString().trim();
+
+        if (time.isEmpty() || capacity.isEmpty() || duration.isEmpty() || price.isEmpty()) {
+            // Show an error message to the user
+            Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show();
+            return; // Stop saving the data
+        }
+
+        // If all fields are filled, proceed with saving the data
         GiogaCourseModel newCourse = new GiogaCourseModel();
         newCourse.dayOfWeek = dayOfWeekSpinner.getSelectedItem().toString();
-        newCourse.timeofCourse = timeEditText.getText().toString();
-        newCourse.capacity = Integer.parseInt(capacityEditText.getText().toString());
-        newCourse.price = Double.parseDouble(priceEditText.getText().toString());
+        newCourse.timeofCourse = time;
+        newCourse.capacity = Integer.parseInt(capacity);
+        newCourse.price = Double.parseDouble(price);
         newCourse.typeofClass = typeSpinner.getSelectedItem().toString();
         newCourse.description = descriptionEditText.getText().toString();
-        newCourse.duration = Integer.parseInt(durationEditText.getText().toString());
+        newCourse.duration = Integer.parseInt(duration);
 
         executorService.execute(() -> {
             appDatabase.CourseDao().insertCourse(newCourse);

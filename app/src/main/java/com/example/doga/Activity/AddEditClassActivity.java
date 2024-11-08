@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,10 +36,11 @@ public class AddEditClassActivity extends AppCompatActivity {
     private EditText teacherEditText;
     private EditText commentEditText;
     long courseId = -1L;
+    long classId = -1L;
     private DayOfWeek courseDayOfWeek;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private GiogaCourseModel giogaCourseModel = null;
-
+    Intent intent = getIntent();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,9 +53,9 @@ public class AddEditClassActivity extends AppCompatActivity {
         dateEditText = findViewById(R.id.dateEditText);
         teacherEditText = findViewById(R.id.teacherEditText);
         commentEditText = findViewById(R.id.commentEditText);
-        Intent intent = getIntent();
+         intent = getIntent();
         if (intent != null && intent.getExtras() != null) {
-            long classId = intent.getLongExtra("class_id", -1L);
+             classId = intent.getLongExtra("class_id", -1L);
             courseId = intent.getLongExtra("course_id", -1L);
             executorService.execute(() ->{
                 giogaCourseModel = appDatabase.CourseDao().getCourseById(courseId);
@@ -66,30 +68,56 @@ public class AddEditClassActivity extends AppCompatActivity {
                 });
             });
         // Set click listener for save button
-        saveButton.setOnClickListener(view -> {
-
-                if (classId != -1L) {
-                    // Update existing class
+            saveButton.setOnClickListener(view -> {
+                 intent = getIntent();
+                if (intent != null && intent.getExtras() != null) {
+                    classId = intent.getLongExtra("class_id", -1L);
+                    courseId = intent.getLongExtra("course_id", -1L);
                     executorService.execute(() -> {
-                        GiogaClassModel giogaClassModel = appDatabase.ClassDao().getClassById(classId);
-                        giogaClassModel.date = dateEditText.getText().toString();
-                        giogaClassModel.teacher = teacherEditText.getText().toString();
-                        giogaClassModel.comment = commentEditText.getText().toString();
-                        appDatabase.ClassDao().updateClass(giogaClassModel);
-
-                        // Set result and finish after updating
-                        runOnUiThread(() -> {
-                            setResult(Activity.RESULT_OK);
-                            finish();
+                        giogaCourseModel = appDatabase.CourseDao().getCourseById(courseId);
+                    });
+                    runOnUiThread(() -> {
+                        dateEditText.setOnClickListener(view1 -> {
+                            DatePickerFragment newFragment = new DatePickerFragment();
+                            newFragment.setGiogaCourseModel(giogaCourseModel);
+                            newFragment.show(getSupportFragmentManager(), "datePicker");
                         });
                     });
 
+                    if (classId != -1L) {
+                        // Update existing class
+                        saveButton.setOnClickListener(view1 -> {
+                            String date = dateEditText.getText().toString().trim();
+                            String teacher = teacherEditText.getText().toString().trim();
+                            String comment = commentEditText.getText().toString().trim();
+
+                            if (date.isEmpty() || teacher.isEmpty()) {
+                                Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show();
+                                return; // Stop saving the data
+                            }
+
+                            executorService.execute(() -> {
+                                GiogaClassModel giogaClassModel = appDatabase.ClassDao().getClassById(classId);
+                                giogaClassModel.date = date;
+                                giogaClassModel.teacher = teacher;
+                                giogaClassModel.comment = comment;
+                                appDatabase.ClassDao().updateClass(giogaClassModel);
+
+                                runOnUiThread(() -> {
+                                    setResult(Activity.RESULT_OK);
+                                    finish();
+                                });
+                            });
+                        });
+                    } else {
+                        // Add new class
+                        onSaveButtonClicked(view);
+                    }
                 } else {
-                    // Add new class
+                    // Add new class (if no intent extras)
                     onSaveButtonClicked(view);
                 }
-
-        });
+            });
     }
         // Check for existing class ID for editing
          intent = getIntent();
@@ -111,15 +139,26 @@ public class AddEditClassActivity extends AppCompatActivity {
 
     // Method to handle saving a new class
     public void onSaveButtonClicked(View view) {
-        GiogaClassModel newClass = new GiogaClassModel(courseId, dateEditText.getText().toString(), teacherEditText.getText().toString(), commentEditText.getText().toString()); // Assuming courseId is 0 for new classes
+        String date = dateEditText.getText().toString().trim();
+        String teacher = teacherEditText.getText().toString().trim();
+        String comment = commentEditText.getText().toString().trim(); // Comment is optional
+
+        if (date.isEmpty() || teacher.isEmpty()) {
+            // Show an error message to the user
+            Toast.makeText(this, "Please fill in all required fields", Toast.LENGTH_SHORT).show();
+            return; // Stop saving the data
+        }
+
+        // If required fields are filled, proceed with saving the data
+        GiogaClassModel newClass = new GiogaClassModel(courseId, date, teacher, comment);
 
         executorService.execute(() -> {
-
             appDatabase.ClassDao().insertClass(newClass);
         });
         setResult(Activity.RESULT_OK);
         finish();
     }
+
 
     @Override
     protected void onDestroy() {
@@ -144,7 +183,6 @@ public class AddEditClassActivity extends AppCompatActivity {
             DatePickerDialog datePickerDialog = new DatePickerDialog(getActivity(), this, year, --month, day);
             if (giogaCourseModel != null) {
                 DayOfWeek courseDayOfWeek = DayOfWeek.valueOf(giogaCourseModel.dayOfWeek.toUpperCase()); // Get course day
-
                 datePickerDialog.getDatePicker().setOnDateChangedListener((view, year1, monthOfYear, dayOfMonth) -> {
                     LocalDate selectedDate = LocalDate.of(year1, monthOfYear + 1, dayOfMonth);
                     if (selectedDate.getDayOfWeek() != courseDayOfWeek) {
